@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Check, ChevronDown, ChevronUp, ExternalLink, AlertTriangle, Sparkles, X, Zap } from 'lucide-react'
+import { Check, ChevronDown, ChevronUp, AlertTriangle, Sparkles, Zap } from 'lucide-react'
 import './ResumeImprover.css'
 
 const serviceUrl = (import.meta.env.VITE_ML_API_URL || 'http://localhost:5001').replace(/\/$/, '')
@@ -129,14 +129,12 @@ export default function ResumeImprover({ resume, onApply, onResumeId, userId, on
   useEffect(() => () => { if (highlightTimer.current) clearTimeout(highlightTimer.current) }, [])
 
   // ─── Render ───
-  if (!reviewResult && !loading) {
-    return <button className="outline-button improve-it-button" onClick={runReview} disabled={runCount >= MAX_RUNS}
+  return <>
+    <button className="outline-button improve-it-button" onClick={runReview} disabled={loading || runCount >= MAX_RUNS}
       title={runCount >= MAX_RUNS ? 'Maximum 3 review passes reached' : ''}>
-      <Zap size={15} /> Improve it
+      <Zap size={15} /> {loading ? 'Reviewing…' : 'Improve it'}
     </button>
-  }
-
-  return <section className="resume-improver" aria-label="AI resume review">
+    {(reviewResult || loading || error) && <section className="resume-improver" aria-label="AI resume review">
     {/* Header */}
     <div className="improver-header">
       <div className="improver-title"><Sparkles size={16} /><div><strong>AI Resume Review</strong><p>{summary || 'Review complete.'}</p></div></div>
@@ -209,7 +207,8 @@ export default function ResumeImprover({ resume, onApply, onResumeId, userId, on
         </button>
       </div>
     </>}
-  </section>
+  </section>}
+</>
 }
 
 // ─── Helpers ───
