@@ -230,11 +230,11 @@ function ResumePreview({ resume, sections, onEdit, onGoToATS, onTailorSkills, sh
       <div className="preview-actions">
         <button className="outline-button" onClick={onTailorSkills}><Sparkles size={16} /> Tailor by job title</button>
         <button className="outline-button" onClick={onGoToATS}><Target size={16} /> Check ATS score</button>
+        {onResumeImprove}
         <button className="primary-button" onClick={download}><Download size={16} /> Export PDF</button>
       </div>
     </div>
     {showTitleSkills && <JobTitleSkillSuggestions onConfirm={onAddSkills} onDismiss={onDismissTitleSkills} />}
-    {onResumeImprove}
     <div className={`resume-paper ${highlightedFields?.size ? 'has-highlights' : ''}`}>
       {/* ——— Header ——— */}
       <header className="rp-header">

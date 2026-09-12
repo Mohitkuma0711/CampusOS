@@ -130,12 +130,10 @@ export default function ResumeImprover({ resume, onApply, onResumeId, userId, on
 
   // ─── Render ───
   if (!reviewResult && !loading) {
-    return <div className="improver-trigger">
-      <button className="improve-it-button" onClick={runReview} disabled={runCount >= MAX_RUNS}       title={runCount >= MAX_RUNS ? 'Maximum 3 review passes reached' : ''}>
-        <Zap size={15} /> Improve it
-      </button>
-      {runCount >= MAX_RUNS && <span className="improver-limit">Max reviews reached</span>}
-    </div>
+    return <button className="outline-button improve-it-button" onClick={runReview} disabled={runCount >= MAX_RUNS}
+      title={runCount >= MAX_RUNS ? 'Maximum 3 review passes reached' : ''}>
+      <Zap size={15} /> Improve it
+    </button>
   }
 
   return <section className="resume-improver" aria-label="AI resume review">

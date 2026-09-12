@@ -1,11 +1,10 @@
 /* ─── Improve it trigger button ─── */
-.improver-trigger { display: inline-flex; align-items: center; gap: 8px; }
 .improve-it-button {
   border: 1px solid #d97706;
   background: #fffbeb;
   color: #92400e;
   border-radius: 6px;
-  padding: 10px 14px;
+  padding: 13px 17px;
   font: inherit;
   font-size: 12px;
   font-weight: 600;
@@ -18,7 +17,6 @@
 .improve-it-button:hover:not(:disabled) { background: #fef3c7; border-color: #b45309; transform: translateY(-1px); }
 .improve-it-button:disabled { opacity: .5; cursor: not-allowed; }
 .improve-it-button svg { color: #d97706; }
-.improver-limit { font-size: 10px; color: #9ca3af; }
 
 /* ─── Review panel ─── */
 .resume-improver {
