@@ -3,6 +3,8 @@ dist/
 .env
 .env.*
 !.env.example
+!env/*.example
+env/*.env
 __pycache__/
 *.py[cod]
 *.sqlite3
