@@ -1,0 +1,11 @@
+{
+  "scripts": {
+    "dev": "npm --prefix Frontend/client run dev --",
+    "build": "npm --prefix Frontend/client run build",
+    "preview": "npm --prefix Frontend/client run preview",
+    "lint": "npm --prefix Frontend/client run lint"
+  },
+  "dependencies": {
+    "firebase": "^12.19.0"
+  }
+}

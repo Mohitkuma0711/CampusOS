@@ -1,0 +1,10 @@
+{
+  "name": "careeros-db",
+  "private": true,
+  "version": "1.0.0",
+  "type": "commonjs",
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "firebase-admin": "^14.4.0"
+  }
+}

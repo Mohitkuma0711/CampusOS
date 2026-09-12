@@ -1,0 +1,78 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return signedIn() && request.auth.token.admin == true;
+    }
+
+    function ownsUser(userId) {
+      return signedIn() && request.auth.uid == userId;
+    }
+
+    match /users/{userId} {
+      allow read, update, delete: if ownsUser(userId);
+      allow create: if ownsUser(userId) && request.resource.data.firebaseAuthUid == request.auth.uid;
+    }
+
+    match /resumes/{resumeId} {
+      allow read: if ownsUser(resource.data.userId);
+      allow create: if ownsUser(request.resource.data.userId);
+      allow update: if ownsUser(resource.data.userId) && ownsUser(request.resource.data.userId);
+      allow delete: if ownsUser(resource.data.userId);
+    }
+
+    match /atsReports/{reportId} {
+      allow read: if ownsUser(resource.data.userId);
+      allow create: if ownsUser(request.resource.data.userId);
+      allow update: if ownsUser(resource.data.userId) && ownsUser(request.resource.data.userId);
+      allow delete: if ownsUser(resource.data.userId);
+    }
+
+    match /interviewSessions/{sessionId} {
+      allow read: if ownsUser(resource.data.userId);
+      allow create: if ownsUser(request.resource.data.userId);
+      allow update: if ownsUser(resource.data.userId) && ownsUser(request.resource.data.userId);
+      allow delete: if ownsUser(resource.data.userId);
+    }
+
+    match /testAttempts/{attemptId} {
+      allow read: if ownsUser(resource.data.userId);
+      allow create: if ownsUser(request.resource.data.userId);
+      allow update: if ownsUser(resource.data.userId) && ownsUser(request.resource.data.userId);
+      allow delete: if ownsUser(resource.data.userId);
+    }
+
+    match /mentorshipBookings/{bookingId} {
+      allow read: if ownsUser(resource.data.userId);
+      allow create: if ownsUser(request.resource.data.userId);
+      allow update: if ownsUser(resource.data.userId) && ownsUser(request.resource.data.userId);
+      allow delete: if ownsUser(resource.data.userId);
+    }
+
+    match /mentorshipSlots/{slotId} {
+      allow read: if true;
+      allow create: if isAdmin() || ownsUser(request.resource.data.mentorId);
+      allow update: if isAdmin() || (ownsUser(resource.data.mentorId) && ownsUser(request.resource.data.mentorId));
+      allow delete: if isAdmin() || ownsUser(resource.data.mentorId);
+    }
+
+    match /jobListings/{jobListingId} {
+      allow read: if true;
+      allow create: if isAdmin() || ownsUser(request.resource.data.ownerId);
+      allow update: if isAdmin() || (ownsUser(resource.data.ownerId) && ownsUser(request.resource.data.ownerId));
+      allow delete: if isAdmin() || ownsUser(resource.data.ownerId);
+    }
+
+    match /jobMatches/{matchId} {
+      allow read: if ownsUser(resource.data.userId);
+      allow create: if ownsUser(request.resource.data.userId);
+      allow update: if ownsUser(resource.data.userId) && ownsUser(request.resource.data.userId);
+      allow delete: if ownsUser(resource.data.userId);
+    }
+  }
+}

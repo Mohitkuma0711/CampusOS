@@ -1,0 +1,9 @@
+{
+  "name": "careeros-models",
+  "private": true,
+  "version": "1.0.0",
+  "type": "commonjs",
+  "dependencies": {
+    "mongoose": "^9.10.0"
+  }
+}
