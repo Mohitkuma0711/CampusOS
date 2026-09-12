@@ -81,6 +81,14 @@ export async function forkResumeVersion(userId, resumeData, version) {
   return reference.id
 }
 
+export async function saveResumeVersionWithTag(userId, resumeId, resumeData, version, source) {
+  if (!db || !userId || !resumeId) return null
+  const updates = { userId, resumeData, version, isActive: true, updatedAt: serverTimestamp() }
+  if (source) updates.source = source
+  await setDoc(doc(db, 'resumes', resumeId), updates, { merge: true })
+  return resumeId
+}
+
 export async function createUserScopedDocument(collectionName, userId, data) {
   if (!db || !userId) return null
   return addDoc(collection(db, collectionName), { ...data, userId, createdAt: serverTimestamp(), updatedAt: serverTimestamp() })

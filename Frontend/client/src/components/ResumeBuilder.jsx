@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { ArrowLeft, ArrowRight, Check, Download, Edit3, GraduationCap, Briefcase, Plus, RotateCcw, SkipForward, Sparkles, Target, Mail, Phone, MapPin, Globe, Award, BookOpen } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Check, Download, Edit3, GraduationCap, Briefcase, Plus, RotateCcw, SkipForward, Sparkles, Target, Mail, Phone, MapPin, Globe, Award, BookOpen, Zap } from 'lucide-react'
 import './ResumeBuilder.css'
 import { useAuth } from '../context/AuthContext.jsx'
-import { getActiveDraft, saveResumeDraft, saveResumeVersion } from '../lib/firestore.js'
+import { getActiveDraft, saveResumeDraft, saveResumeVersion, saveResumeVersionWithTag } from '../lib/firestore.js'
 import JobTitleSkillSuggestions from './JobTitleSkillSuggestions.jsx'
+import ResumeImprover from './ResumeImprover.jsx'
 
 const emptyResume = {
   experienceLevel: null,
@@ -210,7 +211,7 @@ function SectionRecap({ section, sections, resume, onEdit, onAddDetail, onAddAno
 }
 
 /* ——— Resume preview + PDF ——— */
-function ResumePreview({ resume, sections, onEdit, onGoToATS, onTailorSkills, showTitleSkills, onAddSkills, onDismissTitleSkills }) {
+function ResumePreview({ resume, sections, onEdit, onGoToATS, onTailorSkills, showTitleSkills, onAddSkills, onDismissTitleSkills, onResumeImprove, highlightedFields }) {
   const download = () => window.print()
   const level = resume.experienceLevel
   const hasContact = resume.basics.email || resume.basics.phone || resume.basics.location
@@ -233,11 +234,12 @@ function ResumePreview({ resume, sections, onEdit, onGoToATS, onTailorSkills, sh
       </div>
     </div>
     {showTitleSkills && <JobTitleSkillSuggestions onConfirm={onAddSkills} onDismiss={onDismissTitleSkills} />}
-    <div className="resume-paper">
+    {onResumeImprove}
+    <div className={`resume-paper ${highlightedFields?.size ? 'has-highlights' : ''}`}>
       {/* ——— Header ——— */}
       <header className="rp-header">
-        {resume.basics.name && <h1 className="rp-name">{resume.basics.name}</h1>}
-        {resume.basics.targetRole && <p className="rp-headline">{resume.basics.targetRole}</p>}
+        {resume.basics.name && <h1 className={`rp-name ${highlightedFields?.has('basics.name') ? 'rp-highlight' : ''}`}>{resume.basics.name}</h1>}
+        {resume.basics.targetRole && <p className={`rp-headline ${highlightedFields?.has('basics.targetRole') ? 'rp-highlight' : ''}`}>{resume.basics.targetRole}</p>}
         {hasContact && <div className="rp-contact">
           {resume.basics.email && <span className="rp-contact-item"><Mail size={12} /> {resume.basics.email}</span>}
           {resume.basics.phone && <span className="rp-contact-item"><Phone size={12} /> {resume.basics.phone}</span>}
@@ -250,19 +252,19 @@ function ResumePreview({ resume, sections, onEdit, onGoToATS, onTailorSkills, sh
         {/* Main column */}
         <div className="rp-main">
           {resume.basics.summary && <RpSection title="Professional Summary">
-            <p className="rp-summary-text">{resume.basics.summary}</p>
+            <p className={`rp-summary-text ${highlightedFields?.has('basics.summary') ? 'rp-highlight' : ''}`}>{resume.basics.summary}</p>
           </RpSection>}
           {level === 'experienced' && resume.experience.length > 0 && <RpSection title="Professional Experience">
-            {resume.experience.map((item, i) => <RpEntry key={i} primary={item.company} secondary={item.role} dates={item.dates} description={item.description || item.achievements} />)}
+            {resume.experience.map((item, i) => <RpEntry key={i} primary={item.company} secondary={item.role} dates={item.dates} description={item.description || item.achievements} highlighted={highlightedFields} prefix={`experience[${i}]`} />)}
           </RpSection>}
           <RpSection title="Education">
-            {resume.education.map((item, i) => <RpEntry key={i} primary={item.school} secondary={item.degree} dates={item.dates} description={item.gpa ? `GPA: ${item.gpa}` : ''} />)}
+            {resume.education.map((item, i) => <RpEntry key={i} primary={item.school} secondary={item.degree} dates={item.dates} description={item.gpa ? `GPA: ${item.gpa}` : ''} highlighted={highlightedFields} prefix={`education[${i}]`} />)}
           </RpSection>
           <RpSection title="Projects">
-            {resume.projects.map((item, i) => <RpEntry key={i} primary={item.name} secondary={item.technologies} dates={item.dates} description={item.description} />)}
+            {resume.projects.map((item, i) => <RpEntry key={i} primary={item.name} secondary={item.technologies} dates={item.dates} description={item.description} highlighted={highlightedFields} prefix={`projects[${i}]`} />)}
           </RpSection>
           {level === 'fresher' && resume.internships.length > 0 && <RpSection title="Internships & Training">
-            {resume.internships.map((item, i) => <RpEntry key={i} primary={item.organization} secondary={item.role} dates={item.dates} description={item.description} />)}
+            {resume.internships.map((item, i) => <RpEntry key={i} primary={item.organization} secondary={item.role} dates={item.dates} description={item.description} highlighted={highlightedFields} prefix={`internships[${i}]`} />)}
           </RpSection>}
         </div>
 
@@ -300,16 +302,17 @@ function RpSidebarSection({ title, children }) {
   </div>
 }
 
-function RpEntry({ primary, secondary, dates, description }) {
+function RpEntry({ primary, secondary, dates, description, highlighted, prefix }) {
+  const isHighlighted = (field) => highlighted?.has(`${prefix}.${field}`)
   return <div className="rp-entry">
     <div className="rp-entry-header">
       <div>
-        {primary && <strong className="rp-entry-primary">{primary}</strong>}
-        {secondary && <span className="rp-entry-secondary">{secondary}</span>}
+        {primary && <strong className={`rp-entry-primary ${isHighlighted('company') || isHighlighted('name') || isHighlighted('school') || isHighlighted('organization') ? 'rp-highlight' : ''}`}>{primary}</strong>}
+        {secondary && <span className={`rp-entry-secondary ${isHighlighted('role') || isHighlighted('degree') || isHighlighted('technologies') ? 'rp-highlight' : ''}`}>{secondary}</span>}
       </div>
-      {dates && <span className="rp-entry-dates">{dates}</span>}
+      {dates && <span className={`rp-entry-dates ${isHighlighted('dates') ? 'rp-highlight' : ''}`}>{dates}</span>}
     </div>
-    {description && <p className="rp-entry-desc">{description}</p>}
+    {description && <p className={`rp-entry-desc ${isHighlighted('description') || isHighlighted('achievements') ? 'rp-highlight' : ''}`}>{description}</p>}
   </div>
 }
 
@@ -359,6 +362,9 @@ export default function ResumeBuilder({ initialResume, resumeId }) {
   const [activeDraft, setActiveDraft] = useState(null)
   const [showTitleSkills, setShowTitleSkills] = useState(() => new URLSearchParams(location.search).has('skills'))
   const [showJDUpgrade, setShowJDUpgrade] = useState(false)
+  const [highlightedFields, setHighlightedFields] = useState(new Set())
+  const highlightTimer = useRef(null)
+  const [resumeVersion, setResumeVersion] = useState(1)
 
   useEffect(() => {
     if (new URLSearchParams(location.search).has('skills')) setShowTitleSkills(true)
@@ -454,7 +460,38 @@ export default function ResumeBuilder({ initialResume, resumeId }) {
       setResume(clone(emptyResume))
       localStorage.removeItem(storageKey)
     }
+    return () => { if (highlightTimer.current) clearTimeout(highlightTimer.current) }
   }, [user, storageKey])
+
+  // Handle AI improve apply: version pre-fix, patch, save, highlight, re-run ATS
+  const handleImproveApply = async (patchedResume, changedPaths) => {
+    // 1. Save pre-fix version with tag
+    if (user && resumeId) {
+      try {
+        await saveResumeVersionWithTag(user.uid, resumeId, resume, resumeVersion, 'pre_ai_improve')
+      } catch { /* test mode or offline */ }
+    }
+
+    // 2. Apply the patched resume
+    const newVersion = resumeVersion + 1
+    setResume(patchedResume)
+    setResumeVersion(newVersion)
+
+    // 3. Save new version with source tag
+    if (user && resumeId) {
+      try {
+        await saveResumeVersionWithTag(user.uid, resumeId, patchedResume, newVersion, 'ai_improved')
+      } catch { /* test mode or offline */ }
+    }
+
+    // 4. Persist to localStorage
+    localStorage.setItem(storageKey, JSON.stringify(patchedResume))
+
+    // 5. Highlight changed fields
+    setHighlightedFields(new Set(changedPaths))
+    if (highlightTimer.current) clearTimeout(highlightTimer.current)
+    highlightTimer.current = setTimeout(() => setHighlightedFields(new Set()), 4000)
+  }
 
   // Handle gating question answer
   const handleGate = async (level) => {
@@ -614,7 +651,7 @@ export default function ResumeBuilder({ initialResume, resumeId }) {
   if (showTitleSkills && mode !== 'questions' && mode !== 'preview') return <main className="resume-builder"><JobTitleSkillSuggestions onConfirm={addSuggestedSkills} onDismiss={() => setShowTitleSkills(false)} /></main>
   if (mode === 'gate') return <ExperienceGate onSelect={handleGate} />
   if (mode === 'draft-prompt') return <DraftPrompt draft={activeDraft} onContinue={handleContinueDraft} onStartNew={handleStartNew} />
-  if (mode === 'preview') return <ResumePreview resume={resume} sections={sections} onEdit={beginSection} onTailorSkills={() => setShowTitleSkills(true)} showTitleSkills={showTitleSkills} onAddSkills={addSuggestedSkills} onDismissTitleSkills={() => setShowTitleSkills(false)} onGoToATS={() => navigate('/ats')} />
+  if (mode === 'preview') return <ResumePreview resume={resume} sections={sections} onEdit={beginSection} onTailorSkills={() => setShowTitleSkills(true)} showTitleSkills={showTitleSkills} onAddSkills={addSuggestedSkills} onDismissTitleSkills={() => setShowTitleSkills(false)} onGoToATS={() => navigate('/ats')} onResumeImprove={<ResumeImprover resume={resume} onApply={handleImproveApply} onResumeId={resumeId} userId={user?.uid} />} highlightedFields={highlightedFields} />
   if (mode === 'recap') return <main className="resume-builder"><Progress section={section} progress={progress} saved={saved} level={resume.experienceLevel} onBack={() => setMode('questions')} onReset={reset} /><SectionRecap section={section} sections={sections} resume={resume} onEdit={editItem} onAddDetail={addDetail} onAddAnother={addItem} onContinue={continueSection} onSkipSection={skipSection} /></main>
 
   // Questions mode

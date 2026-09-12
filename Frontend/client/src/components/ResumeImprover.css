@@ -1,0 +1,128 @@
+/* ─── Improve it trigger button ─── */
+.improver-trigger { display: inline-flex; align-items: center; gap: 8px; }
+.improve-it-button {
+  border: 1px solid #d97706;
+  background: #fffbeb;
+  color: #92400e;
+  border-radius: 6px;
+  padding: 10px 14px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  cursor: pointer;
+  transition: all .2s ease;
+}
+.improve-it-button:hover:not(:disabled) { background: #fef3c7; border-color: #b45309; transform: translateY(-1px); }
+.improve-it-button:disabled { opacity: .5; cursor: not-allowed; }
+.improve-it-button svg { color: #d97706; }
+.improver-limit { font-size: 10px; color: #9ca3af; }
+
+/* ─── Review panel ─── */
+.resume-improver {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 24px;
+  margin: 20px 0;
+  animation: improverIn .3s ease both;
+}
+@keyframes improverIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+.improver-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 20px; }
+.improver-title { display: flex; gap: 12px; align-items: flex-start; }
+.improver-title svg { color: #d97706; margin-top: 2px; flex-shrink: 0; }
+.improver-title strong { font-size: 16px; color: #111827; }
+.improver-title p { font-size: 13px; color: #6b7280; margin: 4px 0 0; line-height: 1.5; }
+.improver-score { display: flex; align-items: baseline; gap: 2px; flex-shrink: 0; }
+.improver-score .score-value { font-size: 32px; font-weight: 700; color: #111827; }
+.improver-score .score-label { font-size: 13px; color: #9ca3af; }
+
+/* ─── Loading ─── */
+.improver-loading { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 32px 0; }
+.improver-spinner {
+  width: 28px; height: 28px; border: 3px solid #e5e7eb; border-top-color: #d97706;
+  border-radius: 50%; animation: spin .8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.improver-loading p { font-size: 13px; color: #6b7280; }
+
+/* ─── Error ─── */
+.improver-error {
+  display: flex; align-items: center; gap: 8px; background: #fef2f2; border: 1px solid #fecaca;
+  border-radius: 8px; padding: 12px 16px; font-size: 13px; color: #991b1b; margin-bottom: 16px;
+}
+.improver-error svg { flex-shrink: 0; }
+.improver-error button { margin-left: auto; border: 0; background: transparent; color: #991b1b; font: inherit; font-size: 12px; text-decoration: underline; cursor: pointer; }
+
+/* ─── Clean resume ─── */
+.improver-clean {
+  display: flex; align-items: flex-start; gap: 12px; background: #f0fdf4; border: 1px solid #bbf7d0;
+  border-radius: 8px; padding: 16px 20px; margin-bottom: 16px;
+}
+.improver-clean svg { color: #16a34a; margin-top: 2px; flex-shrink: 0; }
+.improver-clean p { font-size: 13px; color: #166534; margin: 0; line-height: 1.5; }
+
+/* ─── Issues toolbar ─── */
+.improver-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid #e5e7eb; }
+.improver-select-all { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #374151; cursor: pointer; }
+.improver-select-all input { accent-color: #d97706; }
+.improver-count { font-size: 12px; color: #9ca3af; }
+
+/* ─── Category groups ─── */
+.improver-category { margin-bottom: 8px; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden; }
+.category-header {
+  display: flex; align-items: center; gap: 10px; width: 100%;
+  background: #f9fafb; border: 0; padding: 12px 16px; cursor: pointer;
+  font: inherit; font-size: 13px; font-weight: 600; color: #374151;
+  transition: background .15s;
+}
+.category-header:hover { background: #f3f4f6; }
+.category-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.category-label { flex: 1; text-align: left; }
+.category-count { font-size: 11px; font-weight: 400; color: #9ca3af; }
+.category-header svg { color: #9ca3af; }
+
+/* ─── Issue items ─── */
+.category-issues { padding: 4px 12px 12px; }
+.improver-issue {
+  display: flex; gap: 12px; padding: 12px; border-radius: 8px;
+  border: 1px solid transparent; margin-bottom: 6px; transition: all .15s;
+}
+.improver-issue.selected { background: #f0fdf4; border-color: #bbf7d0; }
+.improver-issue.needs-input { background: #fffbeb; border-color: #fde68a; }
+.issue-check { padding-top: 2px; }
+.issue-check input { accent-color: #d97706; width: 15px; height: 15px; }
+.issue-content { flex: 1; min-width: 0; }
+.issue-field-path { margin-bottom: 8px; }
+.issue-field-path code { font-size: 11px; background: #f3f4f6; padding: 2px 7px; border-radius: 4px; color: #6b7280; }
+
+.issue-comparison { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 8px; }
+.comparison-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .8px; display: block; margin-bottom: 4px; }
+.issue-original .comparison-label { color: #dc2626; }
+.issue-suggested .comparison-label { color: #059669; }
+.issue-original p, .issue-suggested p { font-size: 12px; color: #374151; line-height: 1.55; margin: 0; }
+.issue-original p { text-decoration: line-through; color: #9ca3af; }
+
+.issue-reason { font-size: 11px; color: #6b7280; font-style: italic; margin: 6px 0 0; }
+
+/* ─── User input field ─── */
+.issue-user-input { margin-top: 10px; }
+.issue-user-input label { display: block; font-size: 12px; color: #92400e; font-weight: 500; margin-bottom: 5px; }
+.issue-user-input input {
+  width: 100%; padding: 8px 12px; border: 1px solid #fbbf24; border-radius: 6px;
+  font: inherit; font-size: 13px; background: #fffbeb; outline: none; transition: border .2s;
+}
+.issue-user-input input:focus { border-color: #d97706; box-shadow: 0 0 0 2px #fef3c7; }
+
+/* ─── Actions ─── */
+.improver-actions { display: flex; align-items: center; gap: 10px; margin-top: 20px; padding-top: 16px; border-top: 1px solid #e5e7eb; }
+
+/* ─── Mobile ─── */
+@media (max-width: 700px) {
+  .issue-comparison { grid-template-columns: 1fr; }
+  .improver-header { flex-direction: column; }
+  .improver-actions { flex-wrap: wrap; }
+}

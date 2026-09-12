@@ -291,6 +291,17 @@
   .gate-options { grid-template-columns: 1fr; }
 }
 
+/* ─── Highlight animation (after AI improve) ─── */
+@keyframes highlightPulse {
+  0%   { background: #fef3c7; }
+  50%  { background: #fde68a; }
+  100% { background: transparent; }
+}
+.rp-highlight {
+  animation: highlightPulse 3s ease-in-out;
+  border-radius: 3px;
+}
+
 /* ─── Print ─── */
 @media print {
   .page > header, aside, .preview-toolbar { display: none; }
