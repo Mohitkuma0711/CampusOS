@@ -39,14 +39,18 @@ async function startExperienced(page) {
 }
 
 /**
- * Complete the basics section: fill targetRole, skip phone and location.
+ * Complete the basics section: fill targetRole, skip phone, location, and summary.
  * After this, the page is in recap mode for Basics.
+ * Question flow: targetRole (required) → phone (optional) → location (optional) → summary (optional, last)
  */
 async function completeBasics(page, role = 'Frontend Developer') {
   await page.locator('#resume-answer').fill(role);
   await page.locator('button:has-text("Next")').click();
   await page.locator('text=QUESTION 2 OF').waitFor({ timeout: 3000 });
-  await page.locator('button:has-text("Skip for now")').click(); // skip phone (optional)
+  await page.locator('button:has-text("Skip for now")').click(); // skip phone (Q2)
+  await page.locator('text=QUESTION 3 OF').waitFor({ timeout: 3000 });
+  await page.locator('button:has-text("Skip for now")').click(); // skip location (Q3)
+  // Q4 is summary (optional, last) — "Review section" button
   await expect(page.locator('button:has-text("Review section")')).toBeVisible({ timeout: 3000 });
   await page.locator('button:has-text("Review section")').click();
 }
@@ -160,7 +164,10 @@ test.describe('Question flow', () => {
     await page.locator('text=QUESTION 2 OF').waitFor({ timeout: 3000 });
     // Q2: phone (optional) → "Skip for now"
     await page.locator('button:has-text("Skip for now")').click();
-    // Q3: location (last) → button should say "Review section"
+    await page.locator('text=QUESTION 3 OF').waitFor({ timeout: 3000 });
+    // Q3: location (optional) → "Skip for now"
+    await page.locator('button:has-text("Skip for now")').click();
+    // Q4: summary (optional, last) → button should say "Review section"
     await expect(page.locator('button:has-text("Review section")')).toBeVisible({ timeout: 3000 });
   });
 
@@ -262,6 +269,8 @@ test.describe('Experienced flow', () => {
     await page.locator('button:has-text("Next")').click();
     await page.locator('text=QUESTION 2 OF').waitFor({ timeout: 3000 });
     await page.locator('button:has-text("Skip for now")').click();
+    await page.locator('text=QUESTION 3 OF').waitFor({ timeout: 3000 });
+    await page.locator('button:has-text("Skip for now")').click();
     await expect(page.locator('button:has-text("Review section")')).toBeVisible({ timeout: 3000 });
     await page.locator('button:has-text("Review section")').click();
     await expect(page.locator('button:has-text("Continue to Experience")')).toBeVisible({ timeout: 5000 });
@@ -350,15 +359,16 @@ test.describe('Full resume flow', () => {
 
     // Verify preview
     await expect(page.locator('.resume-paper')).toBeVisible({ timeout: 5000 });
-    await expect(page.locator('.resume-header h1')).toHaveText('Test User');
-    await expect(page.locator('.resume-header p')).toHaveText('Frontend Developer');
-    await expect(page.locator('.resume-header small')).toContainText('test@example.com');
-    await expect(page.locator('.paper-section:has-text("Education")')).toBeVisible();
+    await expect(page.locator('.rp-name')).toHaveText('Test User');
+    await expect(page.locator('.rp-headline')).toHaveText('Frontend Developer');
+    await expect(page.locator('.rp-contact')).toContainText('test@example.com');
+    await expect(page.locator('.rp-section-title:has-text("Education")')).toBeVisible();
     await expect(page.locator('text=MIT')).toBeVisible();
-    await expect(page.locator('.paper-section:has-text("Projects")')).toBeVisible();
+    await expect(page.locator('.rp-section-title:has-text("Projects")')).toBeVisible();
     await expect(page.locator('text=Portfolio Website')).toBeVisible();
-    await expect(page.locator('.paper-section:has-text("Skills")')).toBeVisible();
-    await expect(page.locator('text=JavaScript, React, Node.js')).toBeVisible();
+    await expect(page.locator('.rp-sidebar-title:has-text("Technical Skills")')).toBeVisible();
+    await expect(page.locator('.rp-skill-name:has-text("JavaScript")')).toBeVisible();
+    await expect(page.locator('.rp-skill-name:has-text("React")')).toBeVisible();
     await expect(page.locator('button:has-text("Export PDF")')).toBeVisible();
     await expect(page.locator('button:has-text("Tailor by job title")')).toBeVisible();
     await expect(page.locator('button:has-text("Check ATS score")')).toBeVisible();

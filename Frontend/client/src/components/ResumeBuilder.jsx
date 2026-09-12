@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { ArrowLeft, ArrowRight, Check, Download, Edit3, GraduationCap, Briefcase, Plus, RotateCcw, SkipForward, Sparkles, Target } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Check, Download, Edit3, GraduationCap, Briefcase, Plus, RotateCcw, SkipForward, Sparkles, Target, Mail, Phone, MapPin, Globe, Award, BookOpen } from 'lucide-react'
 import './ResumeBuilder.css'
 import { useAuth } from '../context/AuthContext.jsx'
 import { getActiveDraft, saveResumeDraft, saveResumeVersion } from '../lib/firestore.js'
@@ -8,7 +8,7 @@ import JobTitleSkillSuggestions from './JobTitleSkillSuggestions.jsx'
 
 const emptyResume = {
   experienceLevel: null,
-  basics: { name: '', targetRole: '', email: '', phone: '', location: '' },
+  basics: { name: '', targetRole: '', email: '', phone: '', location: '', summary: '' },
   education: [],
   internships: [],
   experience: [],
@@ -36,6 +36,7 @@ const allBasicsQuestions = [
   ['email', 'What email should employers use?', 'you@example.com', false],
   ['phone', 'What is the best phone number to reach you?', '+91 98765 43210', true],
   ['location', 'Where are you based?', 'City, Country', true],
+  ['summary', 'Write a short professional summary (2-3 lines)', 'Brief overview of your experience and goals', true],
 ]
 
 function buildSections(level, profile = {}) {
@@ -62,6 +63,7 @@ function buildSections(level, profile = {}) {
 
   basicsQuestions.push(['phone', 'What is the best phone number to reach you?', '+91 98765 43210', true])
   basicsQuestions.push(['location', 'Where are you based?', 'City, Country', true])
+  basicsQuestions.push(['summary', 'Write a short professional summary (2-3 lines)', 'Brief overview of your experience and goals', true])
 
   const base = [
     { key: 'basics', label: 'Basics', questions: basicsQuestions },
@@ -211,6 +213,9 @@ function SectionRecap({ section, sections, resume, onEdit, onAddDetail, onAddAno
 function ResumePreview({ resume, sections, onEdit, onGoToATS, onTailorSkills, showTitleSkills, onAddSkills, onDismissTitleSkills }) {
   const download = () => window.print()
   const level = resume.experienceLevel
+  const hasContact = resume.basics.email || resume.basics.phone || resume.basics.location
+  const hasSidebar = resume.skills.skills || resume.skills.certifications || resume.skills.coursework || resume.skills.links
+
   return <main className="resume-preview-page">
     <div className="preview-toolbar">
       <button className="back-button" onClick={() => onEdit(0)}><ArrowLeft size={16} /> Edit from start</button>
@@ -229,19 +234,83 @@ function ResumePreview({ resume, sections, onEdit, onGoToATS, onTailorSkills, sh
     </div>
     {showTitleSkills && <JobTitleSkillSuggestions onConfirm={onAddSkills} onDismiss={onDismissTitleSkills} />}
     <div className="resume-paper">
-      <div className="resume-header">
-        <h1>{resume.basics.name || 'Your Name'}</h1>
-        <p>{resume.basics.targetRole || 'Target role'}</p>
-        <small>{[resume.basics.email, resume.basics.phone, resume.basics.location].filter(Boolean).join('  ·  ')}</small>
+      {/* ——— Header ——— */}
+      <header className="rp-header">
+        {resume.basics.name && <h1 className="rp-name">{resume.basics.name}</h1>}
+        {resume.basics.targetRole && <p className="rp-headline">{resume.basics.targetRole}</p>}
+        {hasContact && <div className="rp-contact">
+          {resume.basics.email && <span className="rp-contact-item"><Mail size={12} /> {resume.basics.email}</span>}
+          {resume.basics.phone && <span className="rp-contact-item"><Phone size={12} /> {resume.basics.phone}</span>}
+          {resume.basics.location && <span className="rp-contact-item"><MapPin size={12} /> {resume.basics.location}</span>}
+        </div>}
+      </header>
+
+      {/* ——— Two-column body ——— */}
+      <div className="rp-body">
+        {/* Main column */}
+        <div className="rp-main">
+          {resume.basics.summary && <RpSection title="Professional Summary">
+            <p className="rp-summary-text">{resume.basics.summary}</p>
+          </RpSection>}
+          {level === 'experienced' && resume.experience.length > 0 && <RpSection title="Professional Experience">
+            {resume.experience.map((item, i) => <RpEntry key={i} primary={item.company} secondary={item.role} dates={item.dates} description={item.description || item.achievements} />)}
+          </RpSection>}
+          <RpSection title="Education">
+            {resume.education.map((item, i) => <RpEntry key={i} primary={item.school} secondary={item.degree} dates={item.dates} description={item.gpa ? `GPA: ${item.gpa}` : ''} />)}
+          </RpSection>
+          <RpSection title="Projects">
+            {resume.projects.map((item, i) => <RpEntry key={i} primary={item.name} secondary={item.technologies} dates={item.dates} description={item.description} />)}
+          </RpSection>
+          {level === 'fresher' && resume.internships.length > 0 && <RpSection title="Internships & Training">
+            {resume.internships.map((item, i) => <RpEntry key={i} primary={item.organization} secondary={item.role} dates={item.dates} description={item.description} />)}
+          </RpSection>}
+        </div>
+
+        {/* Sidebar column */}
+        {hasSidebar && <aside className="rp-sidebar">
+          {resume.skills.skills && <RpSidebarSection title="Technical Skills">
+            {resume.skills.skills.split(',').map((s, i) => <div key={i} className="rp-skill-item"><span className="rp-skill-name">{s.trim()}</span></div>)}
+          </RpSidebarSection>}
+          {resume.skills.certifications && <RpSidebarSection title="Certifications">
+            {resume.skills.certifications.split(',').map((c, i) => <div key={i} className="rp-sidebar-entry"><Award size={11} /> <span>{c.trim()}</span></div>)}
+          </RpSidebarSection>}
+          {resume.skills.coursework && <RpSidebarSection title="Coursework">
+            {resume.skills.coursework.split(',').map((c, i) => <div key={i} className="rp-sidebar-entry"><BookOpen size={11} /> <span>{c.trim()}</span></div>)}
+          </RpSidebarSection>}
+          {resume.skills.links && <RpSidebarSection title="Online Presence">
+            {resume.skills.links.split(',').map((l, i) => <div key={i} className="rp-sidebar-entry"><Globe size={11} /> <span>{l.trim()}</span></div>)}
+          </RpSidebarSection>}
+        </aside>}
       </div>
-      {level === 'experienced' && <ResumePreviewSection title="Experience" items={resume.experience} primary="company" secondary="role" />}
-      <ResumePreviewSection title="Education" items={resume.education} primary="school" secondary="degree" />
-      <ResumePreviewSection title="Projects" items={resume.projects} primary="name" secondary="description" />
-      {level === 'fresher' && resume.internships.length > 0 && <ResumePreviewSection title="Internships & Training" items={resume.internships} primary="organization" secondary="role" />}
-      {resume.skills.skills && <section className="paper-section"><h2>Skills</h2><p>{resume.skills.skills}</p></section>}
-      {resume.skills.certifications && <section className="paper-section"><h2>Certifications</h2><p>{resume.skills.certifications}</p></section>}
     </div>
   </main>
+}
+
+function RpSection({ title, children }) {
+  return <section className="rp-section">
+    <h2 className="rp-section-title">{title}</h2>
+    {children}
+  </section>
+}
+
+function RpSidebarSection({ title, children }) {
+  return <div className="rp-sidebar-section">
+    <h3 className="rp-sidebar-title">{title}</h3>
+    {children}
+  </div>
+}
+
+function RpEntry({ primary, secondary, dates, description }) {
+  return <div className="rp-entry">
+    <div className="rp-entry-header">
+      <div>
+        {primary && <strong className="rp-entry-primary">{primary}</strong>}
+        {secondary && <span className="rp-entry-secondary">{secondary}</span>}
+      </div>
+      {dates && <span className="rp-entry-dates">{dates}</span>}
+    </div>
+    {description && <p className="rp-entry-desc">{description}</p>}
+  </div>
 }
 
 function ResumePreviewSection({ title, items, primary, secondary }) {
@@ -573,7 +642,7 @@ export default function ResumeBuilder({ initialResume, resumeId }) {
       <div className="answer-area">
         {section.key === 'skills' && question[0] === 'skills' && <><button type="button" className="skill-helper-link" onClick={() => setShowTitleSkills((visible) => !visible)}>Not sure what skills to add? Tell me the job title you&apos;re targeting.</button>{showTitleSkills && <JobTitleSkillSuggestions onConfirm={addSuggestedSkills} onDismiss={() => setShowTitleSkills(false)} />}{showJDUpgrade && <p className="jd-upgrade">Have a specific job posting? <button type="button" onClick={() => navigate('/ats')}>Paste the JD for a more precise match.</button></p>}</>}
         <label htmlFor="resume-answer">Your answer</label>
-        <textarea id="resume-answer" autoFocus value={answer} placeholder={question[2]} onChange={(e) => { updateAnswer(e.target.value); setError('') }} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); advance() } }} rows={question[0] === 'description' || question[0] === 'achievements' ? 4 : 2} />
+        <textarea id="resume-answer" autoFocus value={answer} placeholder={question[2]} onChange={(e) => { updateAnswer(e.target.value); setError('') }} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); advance() } }} rows={question[0] === 'description' || question[0] === 'achievements' || question[0] === 'summary' ? 4 : 2} />
         {error && <p className="field-error">{error}</p>}
         <div className="answer-actions">
           <button className="skip-button" onClick={() => advance(true)}><SkipForward size={15} /> {question[3] ? 'Skip for now' : 'Clear answer'}</button>
