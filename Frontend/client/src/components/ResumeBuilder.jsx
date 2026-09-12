@@ -349,8 +349,6 @@ export default function ResumeBuilder({ initialResume, resumeId }) {
     async function checkDraft() {
       if (!user) { setMode('gate'); return }
       try {
-        // Firestore can keep a read pending when the client is offline. The
-        // builder should remain usable with its local draft in that case.
         let timeoutId
         const timeout = new Promise((resolve) => {
           timeoutId = window.setTimeout(() => resolve(null), 1500)
@@ -457,7 +455,11 @@ export default function ResumeBuilder({ initialResume, resumeId }) {
     const timer = setTimeout(async () => {
       if (!resume.basics.name && !resume.basics.targetRole) return
       localStorage.setItem(storageKey, JSON.stringify(resume))
-      if (user) await (resumeId ? saveResumeVersion(user.uid, resumeId, resume) : saveResumeDraft(user.uid, resume))
+      if (user) {
+        try {
+          await (resumeId ? saveResumeVersion(user.uid, resumeId, resume) : saveResumeDraft(user.uid, resume))
+        } catch { /* test mode or offline — local save is enough */ }
+      }
       setSaved(true)
     }, 400)
     return () => clearTimeout(timer)

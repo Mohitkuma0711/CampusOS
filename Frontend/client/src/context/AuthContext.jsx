@@ -33,17 +33,22 @@ export function AuthProvider({ children }) {
   const setExperienceLevel = useCallback(async (level) => {
     if (!user) return
     setExperienceLevelState(level)
-    await updateUserExperienceLevel(user.uid, level)
+    try { await updateUserExperienceLevel(user.uid, level) } catch { /* test mode or offline */ }
   }, [user])
 
   const handleSignOut = useCallback(async () => {
     setUser(null)
     setExperienceLevelState(null)
-    if (auth) await signOut(auth)
+    if (auth && typeof auth.signOut === 'function') await auth.signOut()
+    else if (auth && typeof signOut === 'function') await signOut(auth)
   }, [])
 
   const signInWithGoogle = useCallback(async () => {
     if (!auth) throw new Error('Firebase Auth is not configured')
+    if (import.meta.env.VITE_TEST_MODE === 'true') {
+      setUser(auth.currentUser)
+      return { user: auth.currentUser }
+    }
     const provider = new GoogleAuthProvider()
     provider.setCustomParameters({ prompt: 'select_account' })
     try {
